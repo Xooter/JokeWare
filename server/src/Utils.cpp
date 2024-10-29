@@ -13,7 +13,7 @@ inline size_t WriteCallback(void *contents, size_t size, size_t nmemb,
 }
 
 #ifdef _WIN32
-void setWallpaper(const std::string &filePath) {
+inline void setWallpaper(const std::string &filePath) {
   SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, (PVOID)filePath.c_str(),
                        SPIF_UPDATEINIFILE | SPIF_SENDCHANGE);
 }

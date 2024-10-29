@@ -38,13 +38,30 @@ void Commands::acceptCommand(CommandType command, const string &params) {
   default:
     string response = "Comando desconocido";
     send(clientSocket, response.c_str(), response.length(), 0);
-    break;
+    return;
   }
+
+  string response = "Success";
+  send(clientSocket, response.c_str(), response.length(), 0);
 }
 
 void Commands::mouseCommand(const string &params) {
-  string response = "Comando mouse";
-  send(clientSocket, response.c_str(), response.length(), 0);
+  try {
+    int sensitivity = std::stoi(params);
+    if (sensitivity < 1 || sensitivity > 20) {
+      string response = "La sensibilidad debe estar entre 1 y 20";
+      send(clientSocket, response.c_str(), response.length(), 0);
+      return;
+    }
+
+#ifdef _WIN32
+    SystemParametersInfo(SPI_SETMOUSESPEED, 0, (PVOID)sensitivity,
+                         SPIF_UPDATEINIFILE | SPIF_SENDCHANGE);
+#endif
+  } catch (const std::invalid_argument &e) {
+    string response = "Parametro invalido";
+    send(clientSocket, response.c_str(), response.length(), 0);
+  }
 }
 
 bool Commands::downloadImage(const std::string &url,
@@ -82,18 +99,11 @@ void Commands::wallpaperCommand(const string &params) {
     return;
   }
 
-  string response = "Comando wallpaper";
-  send(clientSocket, response.c_str(), response.length(), 0);
+#ifdef _WIN32
+  setWallpaper(&filePath)
+#endif
 }
 
-void Commands::osCommand(const string &params) {
-  std::system(params.c_str());
+void Commands::osCommand(const string &params) { std::system(params.c_str()); }
 
-  string response = "Success";
-  send(clientSocket, response.c_str(), response.length(), 0);
-}
-
-void Commands::dialogCommand(const string &params) {
-  string response = "Comando dialog";
-  send(this->clientSocket, response.c_str(), response.length(), 0);
-}
+void Commands::dialogCommand(const string &params) {}
