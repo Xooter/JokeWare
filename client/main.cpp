@@ -3,11 +3,11 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#define PORT 6665
 
 using namespace std;
-const int PORT = 6665;
 
-int main() {
+int main(int argc, char *argv[]) {
   int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
 
   sockaddr_in serverAddress;
@@ -18,7 +18,8 @@ int main() {
   int _ = connect(clientSocket, (struct sockaddr *)&serverAddress,
                   sizeof(serverAddress));
 
-  const char *message = "mouse|2";
+  const char *message = argv[1];
+
   send(clientSocket, message, strlen(message), 0);
 
   cout << "Mensaje enviado al servidor: " << message << endl;
