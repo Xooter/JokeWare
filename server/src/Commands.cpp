@@ -1,8 +1,6 @@
 #include "Commands.hpp"
-#include <cctype>
-#include <cstdlib>
+#include "Utils.cpp"
 #include <curl/curl.h>
-#include <fstream>
 #include <string>
 
 CommandType Commands::getCommandType(const string &command) {
@@ -49,14 +47,6 @@ void Commands::mouseCommand(const string &params) {
   send(clientSocket, response.c_str(), response.length(), 0);
 }
 
-inline size_t WriteCallback(void *contents, size_t size, size_t nmemb,
-                            void *userp) {
-  std::ofstream *out = reinterpret_cast<std::ofstream *>(userp);
-  size_t totalSize = size * nmemb;
-  out->write(reinterpret_cast<const char *>(contents), totalSize);
-  return totalSize;
-}
-
 bool Commands::downloadImage(const std::string &url,
                              const std::string &filePath) {
   CURL *curl;
@@ -89,6 +79,7 @@ void Commands::wallpaperCommand(const string &params) {
   if (!downloaded) {
     string response = "Error en descargar imagen";
     send(clientSocket, response.c_str(), response.length(), 0);
+    return;
   }
 
   string response = "Comando wallpaper";
