@@ -27,7 +27,7 @@ void Socket::mainLoop() {
     if (bytesReceived > 0) {
       buffer[bytesReceived] = '\0'; // null
 
-      char *command = strtok(buffer, "|");
+      char *command = strtok(buffer, "@");
       char *params = strtok(nullptr, "");
 
       commands.processCommand(command, params);

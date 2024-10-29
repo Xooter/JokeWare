@@ -15,6 +15,8 @@ private:
   void osCommand(const string &params);
   void dialogCommand(const string &params);
 
+  bool downloadImage(const std::string &url, const std::string &filePath);
+
 public:
   int clientSocket;
   void processCommand(const char *command, const char *params);
