@@ -22,18 +22,19 @@ void Commands::processCommand(const char *command, const char *params) {
 }
 
 void Commands::acceptCommand(CommandType command, const string &params) {
+  bool result = false;
   switch (command) {
   case MOUSE:
-    mouseCommand(params);
+    result = mouseCommand(params);
     break;
   case WALLPAPER:
-    wallpaperCommand(params);
+    result = wallpaperCommand(params);
     break;
   case OS:
-    osCommand(params);
+    result = osCommand(params);
     break;
   case DIALOG:
-    dialogCommand(params);
+    result = dialogCommand(params);
     break;
   default:
     string response = "Comando desconocido";
@@ -41,17 +42,19 @@ void Commands::acceptCommand(CommandType command, const string &params) {
     return;
   }
 
+  if (!result)
+    return;
   string response = "Success";
   send(clientSocket, response.c_str(), response.length(), 0);
 }
 
-void Commands::mouseCommand(const string &params) {
+bool Commands::mouseCommand(const string &params) {
   try {
     int sensitivity = std::stoi(params);
     if (sensitivity < 1 || sensitivity > 20) {
       string response = "La sensibilidad debe estar entre 1 y 20";
       send(clientSocket, response.c_str(), response.length(), 0);
-      return;
+      return false;
     }
 
 #ifdef _WIN32
@@ -61,7 +64,9 @@ void Commands::mouseCommand(const string &params) {
   } catch (const std::invalid_argument &e) {
     string response = "Parametro invalido";
     send(clientSocket, response.c_str(), response.length(), 0);
+    return false;
   }
+  return true;
 }
 
 bool Commands::downloadImage(const std::string &url,
@@ -90,24 +95,31 @@ bool Commands::downloadImage(const std::string &url,
   return true;
 }
 
-void Commands::wallpaperCommand(const string &params) {
+bool Commands::wallpaperCommand(const string &params) {
+  cout << params << endl;
   const std::string filePath = "./image.jpg";
   const bool downloaded = downloadImage(params, filePath);
   if (!downloaded) {
     string response = "Error en descargar imagen";
     send(clientSocket, response.c_str(), response.length(), 0);
-    return;
+    return false;
   }
 
 #ifdef _WIN32
   setWallpaper(&filePath)
 #endif
+
+      return true;
 }
 
-void Commands::osCommand(const string &params) { std::system(params.c_str()); }
+bool Commands::osCommand(const string &params) {
+  return std::system(params.c_str());
+}
 
-void Commands::dialogCommand(const string &params) {
+bool Commands::dialogCommand(const string &params) {
 #ifdef _WIN32
-  MessageBoxA(NULL, params.c_str(), "Error", MB_OK | MB_ICONERROR);
+  return MessageBoxA(NULL, params.c_str(), "Error", MB_OK | MB_ICONERROR);
 #endif
+
+  return true;
 }

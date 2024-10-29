@@ -10,10 +10,10 @@ private:
   CommandType getCommandType(const string &command);
   void acceptCommand(CommandType command, const string &params);
 
-  void mouseCommand(const string &params);
-  void wallpaperCommand(const string &params);
-  void osCommand(const string &params);
-  void dialogCommand(const string &params);
+  bool mouseCommand(const string &params);
+  bool wallpaperCommand(const string &params);
+  bool osCommand(const string &params);
+  bool dialogCommand(const string &params);
 
   bool downloadImage(const std::string &url, const std::string &filePath);
 

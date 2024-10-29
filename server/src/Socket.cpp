@@ -30,7 +30,12 @@ void Socket::mainLoop() {
       char *command = strtok(buffer, "@");
       char *params = strtok(nullptr, "");
 
-      commands.processCommand(command, params);
+      if (params == nullptr) {
+        string response = "No se han proporcionado parámetros\n";
+        send(clientSocket, response.c_str(), response.length(), 0);
+      } else {
+        commands.processCommand(command, params);
+      }
     } else if (bytesReceived == 0) {
       cout << "El cliente ha cerrado la conexión" << endl;
     } else {
