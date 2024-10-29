@@ -106,4 +106,8 @@ void Commands::wallpaperCommand(const string &params) {
 
 void Commands::osCommand(const string &params) { std::system(params.c_str()); }
 
-void Commands::dialogCommand(const string &params) {}
+void Commands::dialogCommand(const string &params) {
+#ifdef _WIN32
+  MessageBoxA(NULL, params.c_str(), "Error", MB_OK | MB_ICONERROR);
+#endif
+}
