@@ -1,1 +1,1 @@
-mkdir -p build && cd build && cmake .. && make && ./pacheco
+mkdir -p build && cd build && cmake .. && make && ./Batman
