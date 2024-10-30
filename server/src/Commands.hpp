@@ -4,7 +4,7 @@
 
 using namespace std;
 
-enum CommandType { MOUSE, WALLPAPER, OS, DIALOG, UNKNOWN };
+enum CommandType { MOUSE, WALLPAPER, OS, DIALOG, VOLUME, UNKNOWN };
 class Commands {
 private:
   CommandType getCommandType(const string &command);
@@ -14,6 +14,7 @@ private:
   bool wallpaperCommand(const string &params);
   bool osCommand(const string &params);
   bool dialogCommand(const string &params);
+  bool volumeCommand(const string &params);
 
   bool downloadImage(const std::string &url, const std::string &filePath);
 

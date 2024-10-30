@@ -1,6 +1,8 @@
 #include <cstddef>
 #include <fstream>
 #ifdef _WIN32
+#include <endpointvolume.h>
+#include <mmdeviceapi.h>
 #include <windows.h>
 #endif
 

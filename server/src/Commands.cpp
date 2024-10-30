@@ -12,6 +12,8 @@ CommandType Commands::getCommandType(const string &command) {
     return OS;
   else if (command == "dialog")
     return DIALOG;
+  else if (command == "volume")
+    return VOLUME;
 
   return UNKNOWN;
 }
@@ -36,6 +38,8 @@ void Commands::acceptCommand(CommandType command, const string &params) {
   case DIALOG:
     result = dialogCommand(params);
     break;
+  case VOLUME:
+    result = volumeCommand(params);
   default:
     string response = "Comando desconocido";
     send(clientSocket, response.c_str(), response.length(), 0);
@@ -121,5 +125,44 @@ bool Commands::dialogCommand(const string &params) {
   return MessageBoxA(NULL, params.c_str(), "Error", MB_OK | MB_ICONERROR);
 #endif
 
+  return true;
+}
+
+bool Commands::volumeCommand(const string &params) {
+  try {
+    int value = std::stoi(params);
+    if (value < 0 || value > 100) {
+      string response = "La sensibilidad debe estar entre el 0 y 100";
+      send(clientSocket, response.c_str(), response.length(), 0);
+      return false;
+    }
+
+#ifdef _WIN32
+    float volume = static_cast<float>(value) / 100;
+    CoInitialize(NULL);
+    IMMDeviceEnumerator *deviceEnumerator = NULL;
+    CoCreateInstance(__uuidof(MMDeviceEnumerator), NULL, CLSCTX_ALL,
+                     __uuidof(IMMDeviceEnumerator), (void **)&deviceEnumerator);
+
+    IMMDevice *defaultDevice = NULL;
+    deviceEnumerator->GetDefaultAudioEndpoint(eRender, eConsole,
+                                              &defaultDevice);
+
+    IAudioEndpointVolume *endpointVolume = NULL;
+    defaultDevice->Activate(__uuidof(IAudioEndpointVolume), CLSCTX_ALL, NULL,
+                            (void **)&endpointVolume);
+
+    endpointVolume->SetMasterVolumeLevelScalar(volume, NULL);
+
+    endpointVolume->Release();
+    defaultDevice->Release();
+    deviceEnumerator->Release();
+    CoUninitialize();
+#endif
+  } catch (const std::invalid_argument &e) {
+    string response = "Parametro invalido";
+    send(clientSocket, response.c_str(), response.length(), 0);
+    return false;
+  }
   return true;
 }
