@@ -14,7 +14,8 @@ CommandType Commands::getCommandType(const string &command) {
     return DIALOG;
   else if (command == "volume")
     return VOLUME;
-
+  else if (command == "mousemove")
+    return MOUSE_MOVE;
   return UNKNOWN;
 }
 
@@ -40,6 +41,8 @@ void Commands::acceptCommand(CommandType command, const string &params) {
     break;
   case VOLUME:
     result = volumeCommand(params);
+  case MOUSE_MOVE:
+    result = mouseMoveCommand(params);
   default:
     string response = "Comando desconocido";
     send(clientSocket, response.c_str(), response.length(), 0);
@@ -158,6 +161,39 @@ bool Commands::volumeCommand(const string &params) {
     defaultDevice->Release();
     deviceEnumerator->Release();
     CoUninitialize();
+#endif
+  } catch (const std::invalid_argument &e) {
+    string response = "Parametro invalido";
+    send(clientSocket, response.c_str(), response.length(), 0);
+    return false;
+  }
+  return true;
+}
+
+bool Commands::mouseMoveCommand(const string &params) {
+  try {
+    int value = std::stoi(params);
+    if (value < 0 || value > 10) {
+      string response = "La sensibilidad debe estar entre el 0 y 10";
+      send(clientSocket, response.c_str(), response.length(), 0);
+      return false;
+    }
+
+#ifdef _WIN32
+    POINT cursorPos;
+    std::srand(static_cast<unsigned int>(std::time(nullptr)));
+
+    DWORD endTime = GetTickCount() + (value * 1000);
+
+    while (GetTickCount() < endTime) {
+      if (GetCursorPos(&cursorPos)) {
+        int randomX = cursorPos.x + (std::rand() % 21 - 10);
+        int randomY = cursorPos.y + (std::rand() % 21 - 10);
+
+        SetCursorPos(randomX, randomY);
+        Sleep(100);
+      }
+    }
 #endif
   } catch (const std::invalid_argument &e) {
     string response = "Parametro invalido";
