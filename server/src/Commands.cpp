@@ -68,7 +68,8 @@ bool Commands::mouseCommand(const std::string &params) {
     }
 
 #ifdef _WIN32
-    if (!SystemParametersInfo(SPI_SETMOUSESPEED, 0, (PVOID)&sensitivity,
+    if (!SystemParametersInfo(SPI_SETMOUSESPEED, 0,
+                              (PVOID)(uintptr_t)sensitivity,
                               SPIF_UPDATEINIFILE | SPIF_SENDCHANGE)) {
       std::string response = "Error al establecer la sensibilidad del mouse";
       send(clientSocket, response.c_str(), response.length(), 0);
@@ -88,9 +89,10 @@ bool Commands::downloadImage(const std::string &url,
                              const std::string &filePath) {
   CURL *curl;
   CURLcode res;
-  std::ofstream outFile(filePath, std::ios::binary);
 
-  if (!outFile.is_open()) {
+  std::ofstream outFile(filePath, std::ios::binary);
+  if (!outFile) {
+    std::cerr << "No se pudo abrir el archivo para escritura." << std::endl;
     return false;
   }
 
@@ -99,14 +101,17 @@ bool Commands::downloadImage(const std::string &url,
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &outFile);
-    res = curl_easy_perform(curl);
-    curl_easy_cleanup(curl);
-    outFile.close();
 
+    res = curl_easy_perform(curl);
     if (res != CURLE_OK) {
+      outFile.close();
       return false;
     }
+
+    curl_easy_cleanup(curl);
   }
+
+  outFile.close();
   return true;
 }
 
@@ -239,11 +244,13 @@ bool Commands::mouseMoveCommand(const std::string &params) {
     srand(static_cast<unsigned int>(time(nullptr)));
 
     DWORD endTime = GetTickCount() + (value * 1000);
+    int screenWidth = GetSystemMetrics(SM_CXSCREEN);
+    int screenHeight = GetSystemMetrics(SM_CYSCREEN);
 
     while (GetTickCount() < endTime) {
       if (GetCursorPos(&cursorPos)) {
-        int randomX = cursorPos.x + (rand() % 21 - 10);
-        int randomY = cursorPos.y + (rand() % 21 - 10);
+        int randomX = rand() % screenWidth;
+        int randomY = rand() % screenHeight;
 
         SetCursorPos(randomX, randomY);
         Sleep(100);
