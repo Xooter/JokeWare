@@ -9,7 +9,7 @@
 
 class Socket {
 private:
-  SOCKET serverSocket;
+  long long unsigned int serverSocket;
   Commands commands;
 
 public:
