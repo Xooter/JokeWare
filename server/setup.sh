@@ -1,1 +1,1 @@
-mkdir -p build && cd build && cmake .. && make && ./Batman
+mkdir -p win-build && cd win-build && cmake -DCMAKE_TOOLCHAIN_FILE=../windows-toolchain.cmake .. && make
