@@ -1,4 +1,6 @@
-server/build/
 server/image.jpg
+server/build/
+server/win-build/
 client/build/
+client/win-build/
 

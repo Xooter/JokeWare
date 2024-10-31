@@ -1,21 +1,18 @@
 #pragma once
 #include <iostream>
-#include <sys/socket.h>
-
-using namespace std;
 
 enum CommandType { MOUSE, WALLPAPER, OS, DIALOG, VOLUME, MOUSE_MOVE, UNKNOWN };
 class Commands {
 private:
-  CommandType getCommandType(const string &command);
-  void acceptCommand(CommandType command, const string &params);
+  CommandType getCommandType(const std::string &command);
+  void acceptCommand(CommandType command, const std::string &params);
 
-  bool mouseCommand(const string &params);
-  bool wallpaperCommand(const string &params);
-  bool osCommand(const string &params);
-  bool dialogCommand(const string &params);
-  bool volumeCommand(const string &params);
-  bool mouseMoveCommand(const string &params);
+  bool mouseCommand(const std::string &params);
+  bool wallpaperCommand(const std::string &params);
+  bool osCommand(const std::string &params);
+  bool dialogCommand(const std::string &params);
+  bool volumeCommand(const std::string &params);
+  bool mouseMoveCommand(const std::string &params);
 
   bool downloadImage(const std::string &url, const std::string &filePath);
 

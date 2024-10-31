@@ -1,12 +1,15 @@
 #pragma once
 #include "Commands.hpp"
 #include <cstring>
-#include <netinet/in.h>
-#include <unistd.h>
+
+#ifdef _WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#endif
 
 class Socket {
 private:
-  int serverSocket;
+  SOCKET serverSocket;
   Commands commands;
 
 public:

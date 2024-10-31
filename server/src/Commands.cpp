@@ -1,9 +1,12 @@
+#if _WIN32
+#include <windows.h>
+#endif
 #include "Commands.hpp"
 #include "Utils.cpp"
 #include <curl/curl.h>
 #include <string>
 
-CommandType Commands::getCommandType(const string &command) {
+CommandType Commands::getCommandType(const std::string &command) {
   if (command == "mouse")
     return MOUSE;
   else if (command == "wallpaper")
@@ -24,7 +27,7 @@ void Commands::processCommand(const char *command, const char *params) {
   this->acceptCommand(cmdType, params);
 }
 
-void Commands::acceptCommand(CommandType command, const string &params) {
+void Commands::acceptCommand(CommandType command, const std::string &params) {
   bool result = false;
   switch (command) {
   case MOUSE:
@@ -44,42 +47,48 @@ void Commands::acceptCommand(CommandType command, const string &params) {
   case MOUSE_MOVE:
     result = mouseMoveCommand(params);
   default:
-    string response = "Comando desconocido";
+    std::string response = "Comando desconocido";
     send(clientSocket, response.c_str(), response.length(), 0);
     return;
   }
 
   if (!result)
     return;
-  string response = "Success";
+  std::string response = "Success";
   send(clientSocket, response.c_str(), response.length(), 0);
 }
 
-bool Commands::mouseCommand(const string &params) {
+bool Commands::mouseCommand(const std::string &params) {
   try {
     int sensitivity = stoi(params);
     if (sensitivity < 1 || sensitivity > 20) {
-      string response = "La sensibilidad debe estar entre 1 y 20";
+      std::string response = "La sensibilidad debe estar entre 1 y 20";
       send(clientSocket, response.c_str(), response.length(), 0);
       return false;
     }
 
 #ifdef _WIN32
-    SystemParametersInfo(SPI_SETMOUSESPEED, 0, (PVOID)sensitivity,
-                         SPIF_UPDATEINIFILE | SPIF_SENDCHANGE);
+    if (!SystemParametersInfo(SPI_SETMOUSESPEED, 0, (PVOID)&sensitivity,
+                              SPIF_UPDATEINIFILE | SPIF_SENDCHANGE)) {
+      std::string response = "Error al establecer la sensibilidad del mouse";
+      send(clientSocket, response.c_str(), response.length(), 0);
+      return false;
+    }
 #endif
-  } catch (const invalid_argument &e) {
-    string response = "Parametro invalido";
+
+  } catch (const std::invalid_argument &e) {
+    std::string response = "Parametro invalido";
     send(clientSocket, response.c_str(), response.length(), 0);
     return false;
   }
   return true;
 }
 
-bool Commands::downloadImage(const string &url, const string &filePath) {
+bool Commands::downloadImage(const std::string &url,
+                             const std::string &filePath) {
   CURL *curl;
   CURLcode res;
-  ofstream outFile(filePath, ios::binary);
+  std::ofstream outFile(filePath, std::ios::binary);
 
   if (!outFile.is_open()) {
     return false;
@@ -101,26 +110,33 @@ bool Commands::downloadImage(const string &url, const string &filePath) {
   return true;
 }
 
-bool Commands::wallpaperCommand(const string &params) {
-  cout << params << endl;
-  const string filePath = "./image.jpg";
+#ifdef _WIN32
+inline void setWallpaper(const std::string &filePath) {
+  SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, (PVOID)filePath.c_str(),
+                       SPIF_UPDATEINIFILE | SPIF_SENDCHANGE);
+}
+#endif
+
+bool Commands::wallpaperCommand(const std::string &params) {
+  std::cout << params << std::endl;
+  const std::string filePath = "./image.jpg";
   const bool downloaded = downloadImage(params, filePath);
   if (!downloaded) {
-    string response = "Error en descargar imagen";
+    std::string response = "Error en descargar imagen";
     send(clientSocket, response.c_str(), response.length(), 0);
     return false;
   }
 
 #ifdef _WIN32
-  setWallpaper(&filePath)
+  setWallpaper(filePath);
 #endif
 
-      return true;
+  return true;
 }
 
-bool Commands::osCommand(const string &params) {
+bool Commands::osCommand(const std::string &params) {
 #ifdef _WIN32
-  string result;
+  std::string result;
   HANDLE hStdOutRead, hStdOutWrite;
   SECURITY_ATTRIBUTES sa = {sizeof(SECURITY_ATTRIBUTES), NULL, TRUE};
 
@@ -162,7 +178,7 @@ bool Commands::osCommand(const string &params) {
   return true;
 }
 
-bool Commands::dialogCommand(const string &params) {
+bool Commands::dialogCommand(const std::string &params) {
 #ifdef _WIN32
   return MessageBoxA(NULL, params.c_str(), "Error", MB_OK | MB_ICONERROR);
 #endif
@@ -170,11 +186,11 @@ bool Commands::dialogCommand(const string &params) {
   return true;
 }
 
-bool Commands::volumeCommand(const string &params) {
+bool Commands::volumeCommand(const std::string &params) {
   try {
     int value = stoi(params);
     if (value < 0 || value > 100) {
-      string response = "La sensibilidad debe estar entre el 0 y 100";
+      std::string response = "La sensibilidad debe estar entre el 0 y 100";
       send(clientSocket, response.c_str(), response.length(), 0);
       return false;
     }
@@ -201,19 +217,19 @@ bool Commands::volumeCommand(const string &params) {
     deviceEnumerator->Release();
     CoUninitialize();
 #endif
-  } catch (const invalid_argument &e) {
-    string response = "Parametro invalido";
+  } catch (const std::invalid_argument &e) {
+    std::string response = "Parametro invalido";
     send(clientSocket, response.c_str(), response.length(), 0);
     return false;
   }
   return true;
 }
 
-bool Commands::mouseMoveCommand(const string &params) {
+bool Commands::mouseMoveCommand(const std::string &params) {
   try {
     int value = stoi(params);
     if (value < 0 || value > 10) {
-      string response = "La sensibilidad debe estar entre el 0 y 10";
+      std::string response = "La sensibilidad debe estar entre el 0 y 10";
       send(clientSocket, response.c_str(), response.length(), 0);
       return false;
     }
@@ -234,8 +250,8 @@ bool Commands::mouseMoveCommand(const string &params) {
       }
     }
 #endif
-  } catch (const invalid_argument &e) {
-    string response = "Parametro invalido";
+  } catch (const std::invalid_argument &e) {
+    std::string response = "Parametro invalido";
     send(clientSocket, response.c_str(), response.length(), 0);
     return false;
   }
