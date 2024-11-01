@@ -1,24 +1,9 @@
 #pragma once
 #include <iostream>
 
-enum CommandType {
-  MOUSE,
-  WALLPAPER,
-  OS,
-  DIALOG,
-  VOLUME,
-  MOUSE_MOVE,
-  MINIMIZE,
-  SCREENSAVER,
-  RESOLUTION,
-  KEYBOARD,
-  HIDE_MOUSE,
-  UNKNOWN
-};
 class Commands {
 private:
-  CommandType getCommandType(const std::string &command);
-  void acceptCommand(CommandType command, const std::string &params);
+  void acceptCommand(const std::string command, const std::string &params);
 
   bool mouseCommand(const std::string &params);
   bool wallpaperCommand(const std::string &params);

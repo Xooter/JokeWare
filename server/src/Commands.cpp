@@ -6,75 +6,36 @@
 #include <curl/curl.h>
 #include <string>
 
-CommandType Commands::getCommandType(const std::string &command) {
-  if (command == "mouse")
-    return MOUSE;
-  else if (command == "wallpaper")
-    return WALLPAPER;
-  else if (command == "os")
-    return OS;
-  else if (command == "dialog")
-    return DIALOG;
-  else if (command == "volume")
-    return VOLUME;
-  else if (command == "mousemove")
-    return MOUSE_MOVE;
-  else if (command == "minimize")
-    return MINIMIZE;
-  else if (command == "screensaver")
-    return SCREENSAVER;
-  else if (command == "resolution")
-    return RESOLUTION;
-  else if (command == "keyboard")
-    return KEYBOARD;
-  else if (command == "hidemouse")
-    return HIDE_MOUSE;
-
-  return UNKNOWN;
-}
-
 void Commands::processCommand(const char *command, const char *params) {
-  CommandType cmdType = this->getCommandType(command);
-  this->acceptCommand(cmdType, params);
+  this->acceptCommand(command, params);
 }
 
-void Commands::acceptCommand(CommandType command, const std::string &params) {
+void Commands::acceptCommand(const std::string command,
+                             const std::string &params) {
   bool result = false;
-  switch (command) {
-  case MOUSE:
+  if (command == "mouse") {
     result = mouseCommand(params);
-    break;
-  case WALLPAPER:
+  } else if (command == "wallpaper") {
     result = wallpaperCommand(params);
-    break;
-  case OS:
+  } else if (command == "os") {
     result = osCommand(params);
-    break;
-  case DIALOG:
+  } else if (command == "dialog") {
     result = dialogCommand(params);
-    break;
-  case VOLUME:
+  } else if (command == "volume") {
     result = volumeCommand(params);
-    break;
-  case MOUSE_MOVE:
+  } else if (command == "mouse_move") {
     result = mouseMoveCommand(params);
-    break;
-  case MINIMIZE:
+  } else if (command == "minimize") {
     result = minimizeCommand(params);
-    break;
-  case SCREENSAVER:
+  } else if (command == "screensaver") {
     result = screensaverCommand(params);
-    break;
-  case RESOLUTION:
+  } else if (command == "resolution") {
     result = resolutionCommand(params);
-    break;
-  case KEYBOARD:
+  } else if (command == "keyboard") {
     result = keyboardCommand(params);
-    break;
-  case HIDE_MOUSE:
+  } else if (command == "hide_mouse") {
     result = hideMouseCommand(params);
-    break;
-  default:
+  } else {
     std::string response = "Comando desconocido";
     send(clientSocket, response.c_str(), response.length(), 0);
     return;
