@@ -14,6 +14,11 @@ The FTP server operates on port **6665** and includes the following functionalit
 - **Execute OS Commands:** Send commands directly to the operating system.
 - **Open Dialog Box:** Display dialog boxes for various purposes.
 - **Adjust Volume:** Change the system volume.
+- **Minimize:** Minimize the current window.
+- **Screensaver:** Set on the system screensaver.
+- **Resolution:** Change the system resolution.
+- **Keyboard:** Change system keyboard language.
+- **Hide Mouse:** Change the mouse visibility.
 
 ## Setup Instructions
 
@@ -82,7 +87,7 @@ After the server is running and your client is connected, you can execute any of
 - `minimize -> Example: minimize`
 - `screensaver -> Example: screensaver`
 - `resolution -> Example: resolution <width>x<height>`
-- `keyboard -> Example: keyboard <code>`
+- `keyboard -> Example: keyboard [<code>]` -> [codes](https://learn.microsoft.com/es-es/windows-hardware/manufacture/desktop/windows-language-pack-default-values?view=windows-11)
 - `hide_mouse -> Example: hide_mouse`
 
 ## Warning
