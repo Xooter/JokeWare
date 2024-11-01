@@ -19,6 +19,14 @@ CommandType Commands::getCommandType(const std::string &command) {
     return VOLUME;
   else if (command == "mousemove")
     return MOUSE_MOVE;
+  else if (command == "minimize")
+    return MINIMIZE;
+  else if (command == "screensaver")
+    return SCREENSAVER;
+  else if (command == "resolution")
+    return RESOLUTION;
+  else if (command == "keyboard")
+    return KEYBOARD;
   return UNKNOWN;
 }
 
@@ -46,6 +54,14 @@ void Commands::acceptCommand(CommandType command, const std::string &params) {
     result = volumeCommand(params);
   case MOUSE_MOVE:
     result = mouseMoveCommand(params);
+  case MINIMIZE:
+    result = minimizeCommand(params);
+  case SCREENSAVER:
+    result = screensaverCommand(params);
+  case RESOLUTION:
+    result = resolutionCommand(params);
+  case KEYBOARD:
+    result = keyboardCommand(params);
   default:
     std::string response = "Comando desconocido";
     send(clientSocket, response.c_str(), response.length(), 0);
@@ -268,5 +284,59 @@ bool Commands::mouseMoveCommand(const std::string &params) {
     send(clientSocket, response.c_str(), response.length(), 0);
     return false;
   }
+  return true;
+}
+
+bool Commands::minimizeCommand(const std::string &params) {
+#if _WIN32
+  HWND hwnd = GetForegroundWindow();
+  ShowWindow(hwnd, SW_MINIMIZE);
+#endif
+  return true;
+}
+bool Commands::screensaverCommand(const std::string &params) {
+#if _WIN32
+  SendMessage(HWND_BROADCAST, WM_SYSCOMMAND, SC_SCREENSAVE, 0);
+#endif
+  return true;
+}
+
+bool Commands::resolutionCommand(const std::string &params) {
+#if _WIN32
+  int width = 0, height = 0;
+  char x;
+
+  std::istringstream ss(param);
+  if (!(ss >> width >> x >> height) || x != 'x') {
+    return false;
+  }
+
+  DEVMODE devMode;
+  devMode.dmSize = sizeof(devMode);
+  devMode.dmPelsWidth = width;
+  devMode.dmPelsHeight = height;
+  devMode.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT;
+
+  if (ChangeDisplaySettings(&devMode, CDS_TEST) != DISP_CHANGE_SUCCESSFUL) {
+    std::string response = "Resolucion no valida";
+    send(clientSocket, response.c_str(), response.length(), 0);
+    return false;
+  }
+
+  ChangeDisplaySettings(&devMode, 0);
+#endif
+  return true;
+}
+
+bool Commands::keyboardCommand(const std::string &params) {
+#if _WIN32
+  HKL layout = LoadKeyboardLayout(
+      std::wstring(params.begin(), params.end()).c_str(), KLF_SETFORPROCESS);
+
+  if (layout == NULL) {
+    std::string response = "Error al cambiar el diseño del teclado.";
+    send(clientSocket, response.c_str(), response.length(), 0);
+  }
+#endif
   return true;
 }
