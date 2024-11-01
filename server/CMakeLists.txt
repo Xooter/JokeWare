@@ -7,6 +7,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libgcc -static-libstdc++ -static -lpthread") # NO SE QUE HACE ESTO
 
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -mwindows") # Evitar la ventana de consola
+endif()
 
 set(CURL_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/dependencies/curl/include")
 set(CURL_LIB_DIR "${CMAKE_SOURCE_DIR}/dependencies/curl/lib")
