@@ -79,6 +79,11 @@ After the server is running and your client is connected, you can execute any of
 - `execute_os_command -> Example: os <command>`
 - `open_dialog_box -> Example: dialog <message>`
 - `adjust_volume -> Example: volume <1 - 100>`
+- `minimize -> Example: minimize`
+- `screensaver -> Example: screensaver`
+- `resolution -> Example: resolution <width>x<height>`
+- `keyboard -> Example: keyboard <code>`
+- `hide_mouse -> Example: hide_mouse`
 
 ## Warning
 
