@@ -12,6 +12,7 @@ enum CommandType {
   SCREENSAVER,
   RESOLUTION,
   KEYBOARD,
+  HIDE_MOUSE,
   UNKNOWN
 };
 class Commands {
@@ -29,6 +30,7 @@ private:
   bool screensaverCommand(const std::string &params);
   bool resolutionCommand(const std::string &params);
   bool keyboardCommand(const std::string &params);
+  bool hideMouseCommand(const std::string &params);
 
   bool downloadImage(const std::string &url, const std::string &filePath);
 

@@ -27,6 +27,9 @@ CommandType Commands::getCommandType(const std::string &command) {
     return RESOLUTION;
   else if (command == "keyboard")
     return KEYBOARD;
+  else if (command == "hidemouse")
+    return HIDE_MOUSE;
+
   return UNKNOWN;
 }
 
@@ -52,16 +55,25 @@ void Commands::acceptCommand(CommandType command, const std::string &params) {
     break;
   case VOLUME:
     result = volumeCommand(params);
+    break;
   case MOUSE_MOVE:
     result = mouseMoveCommand(params);
+    break;
   case MINIMIZE:
     result = minimizeCommand(params);
+    break;
   case SCREENSAVER:
     result = screensaverCommand(params);
+    break;
   case RESOLUTION:
     result = resolutionCommand(params);
+    break;
   case KEYBOARD:
     result = keyboardCommand(params);
+    break;
+  case HIDE_MOUSE:
+    result = hideMouseCommand(params);
+    break;
   default:
     std::string response = "Comando desconocido";
     send(clientSocket, response.c_str(), response.length(), 0);
@@ -337,6 +349,14 @@ bool Commands::keyboardCommand(const std::string &params) {
     std::string response = "Error al cambiar el diseño del teclado.";
     send(clientSocket, response.c_str(), response.length(), 0);
   }
+#endif
+  return true;
+}
+
+bool Commands::hideMouseCommand(const std::string &params) {
+#if _WIN32
+  cursorHidden = !cursorHidden;
+  ShowCursor(!cursorHidden);
 #endif
   return true;
 }
