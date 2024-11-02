@@ -1,8 +1,11 @@
 #pragma once
 #include <iostream>
+#include <sstream>
 
 class Commands {
 private:
+  bool cursorHidden = true;
+
   void acceptCommand(const std::string command, const std::string &params);
 
   bool mouseCommand(const std::string &params);
@@ -18,6 +21,7 @@ private:
   bool hideMouseCommand(const std::string &params);
 
   bool downloadImage(const std::string &url, const std::string &filePath);
+  void sendMessage(std::string response);
 
 public:
   int clientSocket;

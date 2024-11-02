@@ -37,14 +37,14 @@ void Commands::acceptCommand(const std::string command,
     result = hideMouseCommand(params);
   } else {
     std::string response = "Comando desconocido";
-    send(clientSocket, response.c_str(), response.length(), 0);
+    sendMessage(response);
     return;
   }
 
   if (!result)
     return;
   std::string response = "Success";
-  send(clientSocket, response.c_str(), response.length(), 0);
+  sendMessage(response);
 }
 
 bool Commands::mouseCommand(const std::string &params) {
@@ -52,7 +52,7 @@ bool Commands::mouseCommand(const std::string &params) {
     int sensitivity = stoi(params);
     if (sensitivity < 1 || sensitivity > 20) {
       std::string response = "La sensibilidad debe estar entre 1 y 20";
-      send(clientSocket, response.c_str(), response.length(), 0);
+      sendMessage(response);
       return false;
     }
 
@@ -61,14 +61,14 @@ bool Commands::mouseCommand(const std::string &params) {
                               (PVOID)(uintptr_t)sensitivity,
                               SPIF_UPDATEINIFILE | SPIF_SENDCHANGE)) {
       std::string response = "Error al establecer la sensibilidad del mouse";
-      send(clientSocket, response.c_str(), response.length(), 0);
+      sendMessage(response);
       return false;
     }
 #endif
 
   } catch (const std::invalid_argument &e) {
     std::string response = "Parametro invalido";
-    send(clientSocket, response.c_str(), response.length(), 0);
+    sendMessage(response);
     return false;
   }
   return true;
@@ -120,7 +120,7 @@ bool Commands::wallpaperCommand(const std::string &params) {
   const bool downloaded = downloadImage(params, filePath);
   if (!downloaded) {
     std::string response = "Error en descargar imagen";
-    send(clientSocket, response.c_str(), response.length(), 0);
+    sendMessage(response);
     return false;
   }
 
@@ -181,7 +181,7 @@ bool Commands::osCommand(const std::string &params) {
   CloseHandle(pi.hProcess);
   CloseHandle(pi.hThread);
 
-  send(clientSocket, result.c_str(), result.length(), 0);
+  sendMessage(result);
 #endif
   return true;
 }
@@ -190,8 +190,7 @@ bool Commands::volumeCommand(const std::string &params) {
   try {
     int value = stoi(params);
     if (value < 0 || value > 100) {
-      std::string response = "La sensibilidad debe estar entre el 0 y 100";
-      send(clientSocket, response.c_str(), response.length(), 0);
+      sendMessage("La sensibilidad debe estar entre el 0 y 100");
       return false;
     }
 
@@ -218,8 +217,7 @@ bool Commands::volumeCommand(const std::string &params) {
     CoUninitialize();
 #endif
   } catch (const std::invalid_argument &e) {
-    std::string response = "Parametro invalido";
-    send(clientSocket, response.c_str(), response.length(), 0);
+    sendMessage("Parametro invalido");
     return false;
   }
   return true;
@@ -229,8 +227,7 @@ bool Commands::mouseMoveCommand(const std::string &params) {
   try {
     int value = stoi(params);
     if (value < 0 || value > 10) {
-      std::string response = "La sensibilidad debe estar entre el 0 y 10";
-      send(clientSocket, response.c_str(), response.length(), 0);
+      sendMessage("La sensibilidad debe estar entre el 0 y 10");
       return false;
     }
 
@@ -253,8 +250,7 @@ bool Commands::mouseMoveCommand(const std::string &params) {
     }
 #endif
   } catch (const std::invalid_argument &e) {
-    std::string response = "Parametro invalido";
-    send(clientSocket, response.c_str(), response.length(), 0);
+    sendMessage("Parametro invalido");
     return false;
   }
   return true;
@@ -276,11 +272,24 @@ bool Commands::screensaverCommand(const std::string &params) {
 
 bool Commands::resolutionCommand(const std::string &params) {
 #if _WIN32
-  int width = 0, height = 0;
-  char x;
+  int width = 0;
+  int height = 0;
 
-  std::istringstream ss(param);
-  if (!(ss >> width >> x >> height) || x != 'x') {
+  std::stringstream ss;
+  ss << params;
+  std::string token;
+
+  if (std::getline(ss, token, 'x')) {
+    width = std::stoi(token);
+  } else {
+    sendMessage("Resolucion no valida");
+    return false;
+  }
+
+  if (std::getline(ss, token)) {
+    height = std::stoi(token);
+  } else {
+    sendMessage("Resolucion no valida");
     return false;
   }
 
@@ -291,8 +300,7 @@ bool Commands::resolutionCommand(const std::string &params) {
   devMode.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT;
 
   if (ChangeDisplaySettings(&devMode, CDS_TEST) != DISP_CHANGE_SUCCESSFUL) {
-    std::string response = "Resolucion no valida";
-    send(clientSocket, response.c_str(), response.length(), 0);
+    sendMessage("Resolucion no valida");
     return false;
   }
 
@@ -303,12 +311,10 @@ bool Commands::resolutionCommand(const std::string &params) {
 
 bool Commands::keyboardCommand(const std::string &params) {
 #if _WIN32
-  HKL layout = LoadKeyboardLayout(
-      std::wstring(params.begin(), params.end()).c_str(), KLF_SETFORPROCESS);
+  HKL layout = LoadKeyboardLayout(params.c_str(), KLF_SETFORPROCESS);
 
   if (layout == NULL) {
-    std::string response = "Error al cambiar el diseño del teclado.";
-    send(clientSocket, response.c_str(), response.length(), 0);
+    sendMessage("Error al cambiar el diseño del teclado.");
   }
 #endif
   return true;
@@ -320,4 +326,8 @@ bool Commands::hideMouseCommand(const std::string &params) {
   ShowCursor(!cursorHidden);
 #endif
   return true;
+}
+
+void Commands::sendMessage(std::string response) {
+  send(clientSocket, response.c_str(), response.length(), 0);
 }
