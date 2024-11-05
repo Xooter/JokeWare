@@ -106,7 +106,10 @@ bool Commands::downloadImage(const std::string &url,
 
 #ifdef _WIN32
 inline void setWallpaper(const std::string &filePath) {
-  if (!SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, (PVOID)filePath.c_str(),
+  std::filesystem::path absolutePath = std::filesystem::absolute(filePath);
+
+  if (!SystemParametersInfo(SPI_SETDESKWALLPAPER, 0,
+                            (PVOID)absolutePath.c_str(),
                             SPIF_UPDATEINIFILE | SPIF_SENDCHANGE)) {
     std::cerr << "Error al establecer el fondo de pantalla: " << GetLastError()
               << std::endl;
