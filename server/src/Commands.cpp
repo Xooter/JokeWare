@@ -35,6 +35,8 @@ void Commands::acceptCommand(const std::string command,
     result = keyboardCommand(params);
   } else if (command == "hide_mouse") {
     result = hideMouseCommand(params);
+  } else if (command == "shake") {
+    result = shakeCommand(params);
   } else {
     std::string response = "Comando desconocido";
     sendMessage(response);
@@ -331,6 +333,22 @@ bool Commands::hideMouseCommand(const std::string &params) {
   return true;
 }
 
-void Commands::sendMessage(std::string response) {
+bool Commands::shakeCommand(const std::string &params) {
+#if _WIN32
+  RECT rect;
+  GetWindowRect(hwnd, &rect);
+  int posX = rect.left;
+  int posY = rect.top;
+
+  for (int i = 0; i < 20; ++i) {
+    SetWindowPos(hwnd, NULL, posX + rand() % 10 - 5, posY + rand() % 10 - 5, 0,
+                 0, SWP_NOSIZE | SWP_NOZORDER);
+    Sleep(50);
+  }
+#endif
+  return true;
+}
+
+void Commands::sendMessage(const std::string response) {
   send(clientSocket, response.c_str(), response.length(), 0);
 }
