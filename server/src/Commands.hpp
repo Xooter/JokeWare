@@ -15,7 +15,6 @@ private:
   bool volumeCommand(const std::string &params);
   bool mouseMoveCommand(const std::string &params);
   bool minimizeCommand(const std::string &params);
-  bool screensaverCommand(const std::string &params);
   bool resolutionCommand(const std::string &params);
   bool keyboardCommand(const std::string &params);
   bool hideMouseCommand(const std::string &params);

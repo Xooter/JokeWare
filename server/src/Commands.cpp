@@ -1,3 +1,4 @@
+#include <filesystem>
 #if _WIN32
 #include <windows.h>
 #endif
@@ -27,8 +28,6 @@ void Commands::acceptCommand(const std::string command,
     result = mouseMoveCommand(params);
   } else if (command == "minimize") {
     result = minimizeCommand(params);
-  } else if (command == "screensaver") {
-    result = screensaverCommand(params);
   } else if (command == "resolution") {
     result = resolutionCommand(params);
   } else if (command == "keyboard") {
@@ -268,12 +267,6 @@ bool Commands::minimizeCommand(const std::string &params) {
 #endif
   return true;
 }
-bool Commands::screensaverCommand(const std::string &params) {
-#if _WIN32
-  SendMessage(HWND_BROADCAST, WM_SYSCOMMAND, SC_SCREENSAVE, 0);
-#endif
-  return true;
-}
 
 bool Commands::resolutionCommand(const std::string &params) {
 #if _WIN32
@@ -335,6 +328,7 @@ bool Commands::hideMouseCommand(const std::string &params) {
 
 bool Commands::shakeCommand(const std::string &params) {
 #if _WIN32
+  HWND hwnd = GetForegroundWindow();
   RECT rect;
   GetWindowRect(hwnd, &rect);
   int posX = rect.left;
