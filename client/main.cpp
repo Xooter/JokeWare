@@ -1,15 +1,15 @@
 #include <iostream>
-#include <string>
 #if _WIN32
-#include <winsock2.h>
+#include <string>
 #include <windows.h>
+#include <winsock2.h>
 #include <ws2tcpip.h>
 #endif
 
 const int PORT = 6665;
 
 int main(int argc, char *argv[]) {
-  if (argc < 3) {
+  if (argc < 2) {
     std::cerr << "Uso: " << argv[0] << " <comando> <mensaje>" << std::endl;
     return 1;
   }
