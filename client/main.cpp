@@ -1,22 +1,28 @@
+#include <cstring>
 #include <iostream>
+
 #if _WIN32
-#include <string>
 #include <windows.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#else
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <unistd.h>
 #endif
 
 const int PORT = 6665;
+const char *ipAddress = "10.147.20.187";
 
 int main(int argc, char *argv[]) {
-  if (argc < 2) {
+  if (argc < 3) {
     std::cerr << "Uso: " << argv[0] << " <comando> <mensaje>" << std::endl;
     return 1;
   }
 
-  const char *ipAddress = "127.0.0.1";
   const char *command = argv[1];
   const char *message = argv[2];
+
 #if _WIN32
   WSADATA wsaData;
   if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
@@ -44,6 +50,30 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
+#else
+  int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
+  if (clientSocket < 0) {
+    std::cerr << "Error al crear el socket." << std::endl;
+    return 1;
+  }
+
+  sockaddr_in serverAddress;
+  serverAddress.sin_family = AF_INET;
+  serverAddress.sin_port = htons(PORT);
+  if (inet_pton(AF_INET, ipAddress, &serverAddress.sin_addr) <= 0) {
+    std::cerr << "Error en la dirección IP." << std::endl;
+    close(clientSocket);
+    return 1;
+  }
+
+  if (connect(clientSocket, (struct sockaddr *)&serverAddress,
+              sizeof(serverAddress)) < 0) {
+    std::cerr << "Error en la conexión." << std::endl;
+    close(clientSocket);
+    return 1;
+  }
+#endif
+
   std::string fullMessage = std::string(command) + "@" + message;
   send(clientSocket, fullMessage.c_str(), fullMessage.size(), 0);
 
@@ -58,8 +88,12 @@ int main(int argc, char *argv[]) {
     std::cerr << "Error al recibir la respuesta del servidor." << std::endl;
   }
 
+#if _WIN32
   closesocket(clientSocket);
   WSACleanup();
+#else
+  close(clientSocket);
 #endif
+
   return 0;
 }
